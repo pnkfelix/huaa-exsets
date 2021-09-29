@@ -13,3 +13,6 @@ html_parser = "0.6.2"
 url = "2.2"
 rand = "0.8.4"
 tracing = "0.1"
+
+[workspace]
+members = ["ex1"]
