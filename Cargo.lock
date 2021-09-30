@@ -176,6 +176,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
 
 [[package]]
+name = "crawler"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "html_parser",
+ "rand",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "digest"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -192,6 +205,10 @@ checksum = "80df024fbc5ac80f87dfef0d9f5209a252f2a497f7f42944cff24d8253cac065"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "ex1"
+version = "0.1.0"
 
 [[package]]
 name = "fake-simd"
@@ -390,19 +407,6 @@ name = "httpdate"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6456b8a6c8f33fee7d958fcd1b60d55b11940a79e63ae87013e6d22e26034440"
-
-[[package]]
-name = "huaa-exset1"
-version = "0.1.0"
-dependencies = [
- "axum",
- "html_parser",
- "rand",
- "reqwest",
- "tokio",
- "tracing",
- "url",
-]
 
 [[package]]
 name = "hyper"
