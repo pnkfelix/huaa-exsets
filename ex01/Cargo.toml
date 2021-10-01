@@ -1,5 +1,5 @@
 [package]
-name = "ex8"
+name = "ex01"
 version = "0.1.0"
 edition = "2018"
 
@@ -7,6 +7,3 @@ edition = "2018"
 
 [dependencies]
 tokio = "1.0"
-reqwest = { version = "0.11", features = ["blocking"] }
-html_parser = "0.6.2"
-url = "2.2"
