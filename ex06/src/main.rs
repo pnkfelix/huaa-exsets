@@ -1,38 +1,26 @@
 const APACHE: &'static str = "https://www.apache.org/";
 const AMAZON: &'static str = "https://www.amazon.com/";
-const CRATES_IO: &'static str = "https://crates.io/";
 const DOCS_RS: &'static str = "https://docs.rs/";
 const MOZILLA: &'static str = "https://www.mozilla.org/";
 const RUST_LANG: &'static str = "https://www.rust-lang.org/";
 const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 
 const SITES: &'static [&'static str] = &[
-    APACHE, AMAZON, CRATES_IO, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA
+    APACHE, AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA
 ];
 
 type Res<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[tokio::main]
 async fn main() -> Res<()> {
-
-    let response = reqwest::get(CRATES_IO).await?;
-    let text = response.text().await?;
-    println!("response text: {} bytes", text.len());
-    if text.len() < 1024 {
-        println!("response text: {}", text);
-    }
-    Ok(())
-}
-
-// #[tokio::main]
-async fn other_main() -> Res<()> {
-    let mut running = Vec::new();
-    for site in SITES {
-        running.push((site, first_url(site)));
-    }
-
-    for (site, handle) in running {
-        println!("{}: {:?}", site, handle.await?);
+    tokio::select! {
+        local_url = first_url("https://127.0.0.1/") => { dbg!(local_url?); }
+        apache_url = first_url(APACHE) => { dbg!(apache_url?); }
+        amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
+        docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
+        mozilla_url = first_url(MOZILLA) => { dbg!(mozilla_url?); }
+        rustlang_url = first_url(RUST_LANG) => { dbg!(rustlang_url?); }
+        wikipedia_url = first_url(WIKIPEDIA) => { dbg!(wikipedia_url?); }
     }
 
     Ok(())
@@ -56,6 +44,10 @@ async fn first_url(site: &str) -> Res<Option<Url>> {
 
     let response = client.get(site).send().await?;
     let text = response.text().await?;
+    println!("site: {} response text: {} bytes", site, text.len());
+    if text.len() < 1024 {
+        println!("site: {} response text: \n```\n{}\n```", site, text);
+    }
     first_url_in_text(&text)
 }
 
@@ -78,17 +70,3 @@ fn first_url_in_text(text: &str) -> Res<Option<Url>>
     println!("text: ```\n{}\n```", text);
     return Ok(None);
 }
-
-const S: &'static str = r###"
-<!doctype html>
-<!--[if !(IE 8)&!(IE 9)]><!-->
-<html data-19ax5a9jf="dingo" lang="en-us" class="a-no-js"><!--<![endif]-->
-<head></head><body></body></html>
-"###;
-
-const S2: &'static str = r###"
-<!DOCTYPE html>
-<!--[if lt IE 9 ]> <html class="ie8"> <![endif]-->
-<!--[if IE 9 ]> <html class="ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html> <!--<![endif]-->
-"###;
