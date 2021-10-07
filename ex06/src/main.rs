@@ -10,65 +10,85 @@ const SITES: &'static [&'static str] = &[
     APACHE, AMAZON, CRATES_IO, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA
 ];
 
-type Res<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
+type Res<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn main() -> Res<()> {
 
+    let response = reqwest::get(CRATES_IO).await?;
+    let text = response.text().await?;
+    println!("response text: {} bytes", text.len());
+    if text.len() < 1024 {
+        println!("response text: {}", text);
+    }
+    Ok(())
+}
+
+// #[tokio::main]
+async fn other_main() -> Res<()> {
     let mut running = Vec::new();
     for site in SITES {
-        running.push((site, tokio::spawn(first_url(site))));
+        running.push((site, first_url(site)));
     }
 
     for (site, handle) in running {
-        println!("{}: {:?}", site, handle.await??);
+        println!("{}: {:?}", site, handle.await?);
     }
 
     Ok(())
 }
 
-use html_parser::{Dom, Node};
+use scraper::{Html, Selector};
 use url::Url;
 use std::collections::{HashMap, VecDeque};
 
+// Name your user agent after your app?
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
+
 async fn first_url(site: &str) -> Res<Option<Url>> {
-    let response = reqwest::get(site).await?;
+    let client = reqwest::Client::builder()
+        .user_agent(APP_USER_AGENT)
+        .build()?;
+
+    let response = client.get(site).send().await?;
     let text = response.text().await?;
-    let dom = Dom::parse(&text)?;
-    let mut first_url = None;
-    let mut node_todo: VecDeque<Node> = dom.children.into();
-    while let Some(node) = node_todo.pop_front() {
-        let attrs: HashMap<String, Option<String>> = match node {
-            Node::Text(_) | Node::Comment(_) =>
-                continue,
+    first_url_in_text(&text)
+}
 
-            Node::Element(elem) => {
-                // node_todo.extend(elem.children.iter().cloned());
-                for child in elem.children.iter().cloned().rev() {
-                    node_todo.push_front(child);
-                }
-
-                if elem.name.as_str() == "a" {
-                    elem.attributes
-                } else {
-                    continue;
-                }
-            }
+fn first_url_in_text(text: &str) -> Res<Option<Url>>
+{
+    let doc = Html::parse_document(&text);
+    let selector = Selector::parse("a")
+        .unwrap_or_else(|err| panic!("failed to parse tag `a`: {:?}.", err));
+    for element in doc.select(&selector) {
+        let link = match element.value().attr("href") {
+            Some(link) => link,
+            None => continue,
         };
-
-        let href = attrs.get("href");
-        let href = match href {
-            Some(Some(h)) => h,
-            Some(None) | None => continue,
-        };
-
-        let url = match Url::parse(href) {
+        let url = match Url::parse(link) {
             Ok(u) => u,
             Err(_) => continue,
         };
-
-        first_url = Some(url);
-        break;
+        return Ok(Some(url));
     }
-    return Ok(first_url);
+    println!("text: ```\n{}\n```", text);
+    return Ok(None);
 }
+
+const S: &'static str = r###"
+<!doctype html>
+<!--[if !(IE 8)&!(IE 9)]><!-->
+<html data-19ax5a9jf="dingo" lang="en-us" class="a-no-js"><!--<![endif]-->
+<head></head><body></body></html>
+"###;
+
+const S2: &'static str = r###"
+<!DOCTYPE html>
+<!--[if lt IE 9 ]> <html class="ie8"> <![endif]-->
+<!--[if IE 9 ]> <html class="ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html> <!--<![endif]-->
+"###;

@@ -8,5 +8,7 @@ edition = "2018"
 [dependencies]
 tokio = "1.0"
 reqwest = { version = "0.11", features = ["blocking"] }
-html_parser = "0.6.2"
+scraper = "0.12"
 url = "2.2"
+anyhow = "1.0"
+# html_parser = "0.6.2"
