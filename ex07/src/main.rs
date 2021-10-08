@@ -9,19 +9,21 @@ type MyError = Box<dyn std::error::Error + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
-    let apache_handle = tokio::task::spawn(first_url(APACHE));
-    let amazon_handle = tokio::task::spawn(first_url(AMAZON));
-    let docsrs_handle = tokio::task::spawn(first_url(DOCS_RS));
-    let mozilla_handle = tokio::task::spawn(first_url(MOZILLA));
-    let rustlang_handle = tokio::task::spawn(first_url(RUST_LANG));
-    let wikipedia_handle = tokio::task::spawn(first_url(WIKIPEDIA));
+    use tokio::task::JoinHandle;
 
-    dbg!(apache_handle.await??);
-    dbg!(amazon_handle.await??);
-    dbg!(docsrs_handle.await??);
-    dbg!(mozilla_handle.await??);
-    dbg!(rustlang_handle.await??);
-    dbg!(wikipedia_handle.await??);
+    let mut site_handles: Vec<(&'static str, JoinHandle<_>)> = Vec::new();
+
+    let mut push_site = |site| {
+        site_handles.push((site, tokio::task::spawn(first_url(site))));
+    };
+
+    for site in [APACHE, AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA] {
+        push_site(site);
+    }
+
+    for (site, handle) in site_handles {
+        dbg!((site, handle.await??));
+    }
 
     Ok(())
 }
