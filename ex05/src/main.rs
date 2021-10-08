@@ -8,6 +8,8 @@ const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::select! {
+        local_url = first_url("http://127.0.0.1") => { dbg!(local_url?); }
+        the_err = always_error() => { dbg!(the_err.err()); }
         apache_url = first_url(APACHE) => { dbg!(apache_url?); }
         amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
         docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
@@ -17,6 +19,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
+
+async fn always_error() -> Result<(), ()> { Err(()) }
 
 async fn first_url(site: &str) -> Result<Option<Url>, Box<dyn std::error::Error>>
 {
