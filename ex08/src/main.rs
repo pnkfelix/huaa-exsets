@@ -32,12 +32,21 @@ async fn main() -> Result<(), MyError> {
         push_site(site);
     }
 
-    while let Some(msg) = rx.recv().await {
-        println!("site: {} => link: {}", msg.site, msg.link);
-    }
+    let recv_task = async move {
+        while let Some(msg) = rx.recv().await {
+            println!("site: {} => link: {}", msg.site, msg.link);
+        }
+    };
 
-    for (site, handle) in site_handles {
-        dbg!((site, handle.await??));
+    let join_task = async move {
+        for (site, handle) in site_handles {
+            dbg!((site, handle.await??));
+        }
+    };
+
+    tokio::select! {
+        () = recv_task => {}
+        () = join_task => {}
     }
 
     Ok(())
