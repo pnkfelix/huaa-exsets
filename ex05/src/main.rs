@@ -8,14 +8,14 @@ const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::select! {
-        local_url = first_url("http://127.0.0.1") => { dbg!(local_url?); }
-        the_err = always_error() => { dbg!(the_err.err()); }
-        apache_url = first_url(APACHE) => { dbg!(apache_url?); }
-        amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
-        docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
-        mozilla_url = first_url(MOZILLA) => { dbg!(mozilla_url?); }
-        rustlang_url = first_url(RUST_LANG) => { dbg!(rustlang_url?); }
-        wikipedia_url = first_url(WIKIPEDIA) => { dbg!(wikipedia_url?); }
+        Ok(local_url) = first_url("http://127.0.0.1") => { dbg!(local_url); }
+        Ok(never_the_val) = always_error() => { dbg!(never_the_val); }
+        Ok(apache_url) = first_url(APACHE) => { dbg!(apache_url); }
+        Ok(amazon_url) = first_url(AMAZON) => { dbg!(amazon_url); }
+        Ok(docsrs_url) = first_url(DOCS_RS) => { dbg!(docsrs_url); }
+        Ok(mozilla_url) = first_url(MOZILLA) => { dbg!(mozilla_url); }
+        Ok(rustlang_url) = first_url(RUST_LANG) => { dbg!(rustlang_url); }
+        Ok(wikipedia_url) = first_url(WIKIPEDIA) => { dbg!(wikipedia_url); }
     }
     Ok(())
 }
