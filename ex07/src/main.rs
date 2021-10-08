@@ -26,8 +26,6 @@ async fn main() -> Result<(), MyError> {
     Ok(())
 }
 
-async fn always_error() -> Result<(), ()> { Err(()) }
-
 async fn first_url(site: &str) -> Result<Option<Url>, MyError>
 {
     let response = reqwest::get(site).await?;
