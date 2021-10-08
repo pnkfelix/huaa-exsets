@@ -5,6 +5,7 @@ async fn fact(n: u32) -> f64 {
     loop {
         println!("i: {I} fact_{N}({I}): {A}", N=n, I=i, A=accum);
         if i == n { break; }
+        tokio::task::yield_now().await;
         i += 1;
         accum *= i as f64;
     }
