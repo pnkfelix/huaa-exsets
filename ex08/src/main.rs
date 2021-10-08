@@ -40,7 +40,7 @@ async fn main() -> Result<(), MyError> {
 
     let join_task = async move {
         for (site, handle) in site_handles {
-            dbg!((site, handle.await??));
+            dbg!((site, handle.await.unwrap().unwrap()));
         }
     };
 
@@ -89,3 +89,4 @@ fn all_urls_in_text(text: &str) -> Result<Vec<Url>, MyError>
     }
     return Ok(urls);
 }
+
