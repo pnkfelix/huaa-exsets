@@ -15,7 +15,7 @@ struct Msg {
     link: Url,
 }
 
-const MSG_BUF_SIZE: usize = 4;
+const MSG_BUF_SIZE: usize = 4000;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
