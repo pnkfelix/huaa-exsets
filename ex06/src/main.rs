@@ -13,10 +13,9 @@ async fn fact(n: u32) -> f64 {
 }
 
 #[tokio::main]
-async fn main() {
-    let answer = tokio::select! {
-        fact_5 = fact(5) => fact_5,
-        fact_10 = fact(10) => fact_10,
-    };
-    println!("answer: {}", answer);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let fact_5 = tokio::task::spawn(fact(5));
+    let fact_10 =  tokio::task::spawn(fact(10));
+    dbg!((fact_5.await?, fact_10.await?));
+    Ok(())
 }
