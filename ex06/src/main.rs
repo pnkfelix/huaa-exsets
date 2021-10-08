@@ -16,6 +16,6 @@ async fn fact(n: u32) -> f64 {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fact_5 = tokio::task::spawn(fact(5));
     let fact_10 =  tokio::task::spawn(fact(10));
-    dbg!((fact_5.await?, fact_10.await?));
+    dbg!((fact_5.await?, fact_10));
     Ok(())
 }
