@@ -15,7 +15,7 @@ struct Msg {
     link: Url,
 }
 
-const MSG_BUF_SIZE: usize = 4000;
+const MSG_BUF_SIZE: usize = 4;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
@@ -23,13 +23,17 @@ async fn main() -> Result<(), MyError> {
 
     let mut site_handles: Vec<(&'static str, JoinHandle<_>)> = Vec::new();
 
-    let (tx, rx) = channel::<Msg>(MSG_BUF_SIZE);
+    let (tx, mut rx) = channel::<Msg>(MSG_BUF_SIZE);
     let mut push_site = |site| {
         site_handles.push((site, tokio::task::spawn(all_urls(site, tx.clone()))));
     };
 
     for site in [APACHE, AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA] {
         push_site(site);
+    }
+
+    while let Some(msg) = rx.recv().await {
+        println!("site: {} => link: {}", msg.site, msg.link);
     }
 
     for (site, handle) in site_handles {
