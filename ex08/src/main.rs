@@ -39,14 +39,19 @@ async fn main() -> Result<(), MyError> {
     };
 
     let join_task = async move {
-        for (site, handle) in site_handles {
-            dbg!((site, handle.await.unwrap().unwrap()));
+        let mut sum = 0;
+        for (_site, handle) in site_handles {
+            sum += handle.await??;
         }
+        let res: Result<usize, MyError> = Ok(sum);
+        res
     };
 
     tokio::select! {
         () = recv_task => {}
-        () = join_task => {}
+        res = join_task => {
+            dbg!(res?);
+        }
     }
 
     Ok(())
