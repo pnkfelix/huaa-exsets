@@ -28,8 +28,10 @@ async fn main() -> Result<(), MyError> {
     Ok(())
 }
 
-async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<(), MyError> {
+async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<Vec<Url>, MyError> {
     use tokio::task::JoinHandle;
+
+    let mut todo: Vec<Url> = Vec::new();
 
     let mut site_handles: Vec<(Url, JoinHandle<_>)> = Vec::new();
 
@@ -42,9 +44,10 @@ async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<(), MyError> {
         push_site(site);
     }
 
-    let recv_task = async move {
+    let recv_task = async {
         while let Some(msg) = rx.recv().await {
             println!("site: {} => link: {}", msg.site, msg.link);
+            todo.push(msg.link);
         }
     };
 
@@ -64,7 +67,7 @@ async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<(), MyError> {
         }
     }
 
-    Ok(())
+    Ok(todo)
 }
 
 async fn all_urls(site: Url, tx: Sender<Msg>) -> Result<usize, MyError>
