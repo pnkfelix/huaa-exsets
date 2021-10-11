@@ -16,7 +16,7 @@ struct Msg {
 }
 
 const MSG_BUF_SIZE: usize = 4;
-const MAX_DEPTH: usize = 2;
+const MAX_DEPTH: usize = 3;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
@@ -28,14 +28,20 @@ async fn main() -> Result<(), MyError> {
     }
 
     let mut todo = sites;
+    let semaphore = Arc::new(Semaphore::new(15));
+    let client = Client::new();
     for _depth in 0..MAX_DEPTH {
-        todo = crawl_sites(todo.into_iter()).await?;
+        todo = crawl_sites(todo.into_iter(), client.clone(), semaphore.clone()).await?;
     }
 
     Ok(())
 }
 
-async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<Vec<Url>, MyError> {
+use tokio::sync::Semaphore;
+use std::sync::Arc;
+use reqwest::Client;
+
+async fn crawl_sites(sites: impl Iterator<Item=Url>, client: Client, semaphore: Arc<Semaphore>) -> Result<Vec<Url>, MyError> {
     use tokio::task::JoinHandle;
 
     let mut todo: Vec<Url> = Vec::new();
@@ -44,7 +50,7 @@ async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<Vec<Url>, MyError
 
     let (tx, mut rx) = channel::<Msg>(MSG_BUF_SIZE);
     let mut push_site = |site: Url| {
-        site_handles.push((site.clone(), tokio::task::spawn(all_urls(site, tx.clone()))));
+        site_handles.push((site.clone(), tokio::task::spawn(all_urls(site, tx.clone(), client.clone(), semaphore.clone()))));
     };
 
     for site in sites {
@@ -77,10 +83,14 @@ async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<Vec<Url>, MyError
     Ok(todo)
 }
 
-async fn all_urls(site: Url, tx: Sender<Msg>) -> Result<usize, MyError>
+async fn all_urls(site: Url, tx: Sender<Msg>, client: Client, semaphore: Arc<Semaphore>) -> Result<usize, MyError>
 {
-    let response = reqwest::get(site.clone()).await?;
-    let text = response.text().await?;
+    let text = {
+        let _permit = semaphore.acquire().await?;
+        let response = client.get(site.clone()).send().await?;
+        let text = response.text().await?;
+        text
+    };
     // println!("response text: {} bytes", text.len());
     let urls = all_urls_in_text(&text)?;
     let count = urls.len();
