@@ -7,6 +7,7 @@ const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::select! {
+        err = always_err() => { dbg!(err?); }
         amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
         docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
         mozilla_url = first_url(MOZILLA) => { dbg!(mozilla_url?); }
@@ -14,6 +15,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         wikipedia_url = first_url(WIKIPEDIA) => { dbg!(wikipedia_url?); }
     }
     Ok(())
+}
+
+async fn always_err() -> Result<(), Box<dyn std::error::Error>> {
+    use std::io::{Error, ErrorKind};
+    Err(Box::new(Error::new(ErrorKind::Other, "demo-err")) as Box<_>)
 }
 
 use url::Url;
