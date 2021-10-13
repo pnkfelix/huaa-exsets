@@ -1,7 +1,8 @@
 #[tokio::main]
 async fn main() {
+    let t = try_it();
     println!("Hello, world!");
-    try_it().await;
+    t.await;
 }
 
 async fn add(x: i32, y: i32) -> i32 {
