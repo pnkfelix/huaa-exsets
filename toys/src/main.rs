@@ -27,8 +27,10 @@ async fn fact_stiff(n: u32) -> f64 {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let fact_5 = tokio::task::spawn(fact_stiff(5));
-    let fact_10 = tokio::task::spawn(fact_yielding(10));
-    dbg!((fact_5.await?, fact_10));
+    let answer = tokio::select! {
+        fact_5 = tokio::task::spawn(fact_stiff(5)) => fact_5,
+        fact_10 = tokio::task::spawn(fact_yielding(10)) => fact_10,
+    };
+    dbg!(answer?);
     Ok(())
 }
