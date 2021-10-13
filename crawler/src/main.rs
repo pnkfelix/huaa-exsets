@@ -7,12 +7,12 @@ const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::select! {
-        err = always_err() => { dbg!(err?); }
-        amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
-        docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
-        mozilla_url = first_url(MOZILLA) => { dbg!(mozilla_url?); }
-        rustlang_url = first_url(RUST_LANG) => { dbg!(rustlang_url?); }
-        wikipedia_url = first_url(WIKIPEDIA) => { dbg!(wikipedia_url?); }
+        Ok(err) = always_err() => { panic!("should never happen"); }
+        Ok(amazon_url) = first_url(AMAZON) => { dbg!(amazon_url); }
+        Ok(docsrs_url) = first_url(DOCS_RS) => { dbg!(docsrs_url); }
+        Ok(mozilla_url) = first_url(MOZILLA) => { dbg!(mozilla_url); }
+        Ok(rustlang_url) = first_url(RUST_LANG) => { dbg!(rustlang_url); }
+        Ok(wikipedia_url) = first_url(WIKIPEDIA) => { dbg!(wikipedia_url); }
     }
     Ok(())
 }
