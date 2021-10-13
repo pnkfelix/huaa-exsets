@@ -1,7 +1,18 @@
+const AMAZON: &'static str = "https://www.amazon.com/";
+const DOCS_RS: &'static str = "https://docs.rs/";
+const MOZILLA: &'static str = "https://www.mozilla.org/";
+const RUST_LANG: &'static str = "https://www.rust-lang.org/";
+const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let wikipedia_url = first_url("https://www.wikipedia.org/").await?;
-    dbg!(wikipedia_url);
+    tokio::select! {
+        amazon_url = first_url(AMAZON) => { dbg!(amazon_url?); }
+        docsrs_url = first_url(DOCS_RS) => { dbg!(docsrs_url?); }
+        mozilla_url = first_url(MOZILLA) => { dbg!(mozilla_url?); }
+        rustlang_url = first_url(RUST_LANG) => { dbg!(rustlang_url?); }
+        wikipedia_url = first_url(WIKIPEDIA) => { dbg!(wikipedia_url?); }
+    }
     Ok(())
 }
 
