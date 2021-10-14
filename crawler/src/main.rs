@@ -24,7 +24,7 @@ async fn main() -> Result<(), MyError> {
     Ok(())
 }
 
-async fn always_err() -> Result<(), MyError> {
+async fn _always_err() -> Result<(), MyError> {
     Err("demo-err".into())
 }
 
