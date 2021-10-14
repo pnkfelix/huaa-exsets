@@ -4,33 +4,40 @@ const MOZILLA: &'static str = "https://www.mozilla.org/";
 const RUST_LANG: &'static str = "https://www.rust-lang.org/";
 const WIKIPEDIA: &'static str = "http://www.wikipedia.org/";
 
+type MyError = Box<dyn std::error::Error + Send + Sync>;
+
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tokio::select! {
-        Ok(err) = always_err() => { panic!("should never happen"); }
-        Ok(amazon_url) = first_url(AMAZON) => { dbg!(amazon_url); }
-        Ok(docsrs_url) = first_url(DOCS_RS) => { dbg!(docsrs_url); }
-        Ok(mozilla_url) = first_url(MOZILLA) => { dbg!(mozilla_url); }
-        Ok(rustlang_url) = first_url(RUST_LANG) => { dbg!(rustlang_url); }
-        Ok(wikipedia_url) = first_url(WIKIPEDIA) => { dbg!(wikipedia_url); }
-    }
+async fn main() -> Result<(), MyError> {
+    let amazon_url = tokio::task::spawn(first_url(AMAZON));
+    let docsrs_url = tokio::task::spawn(first_url(DOCS_RS));
+    let mozilla_url = tokio::task::spawn(first_url(MOZILLA));
+    let rustlang_url = tokio::task::spawn(first_url(RUST_LANG));
+    let wikipedia_url = tokio::task::spawn(first_url(WIKIPEDIA));
+
+
+    dbg!(amazon_url.await??);
+    dbg!(docsrs_url.await??);
+    dbg!(mozilla_url.await??);
+    dbg!(rustlang_url.await??);
+    dbg!(wikipedia_url.await??);
+
     Ok(())
 }
 
-async fn always_err() -> Result<(), Box<dyn std::error::Error>> {
+async fn always_err() -> Result<(), MyError> {
     Err("demo-err".into())
 }
 
 use url::Url;
 use scraper::{Html, Selector};
 
-async fn first_url(site: &str) -> Result<Option<Url>, Box<dyn std::error::Error>> {
+async fn first_url(site: &str) -> Result<Option<Url>, MyError> {
     let response = reqwest::get(site).await?;
     let text = response.text().await?;
     first_url_in_text(&text)
 }
 
-fn first_url_in_text(text: &str) -> Result<Option<Url>, Box<dyn std::error::Error>>
+fn first_url_in_text(text: &str) -> Result<Option<Url>, MyError>
 {
     let doc = Html::parse_document(&text);
     // (This unwrap should never fail; the input is a known constant.)
