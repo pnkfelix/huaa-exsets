@@ -8,18 +8,18 @@ type MyError = Box<dyn std::error::Error + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
-    let amazon_url = tokio::task::spawn(first_url(AMAZON));
-    let docsrs_url = tokio::task::spawn(first_url(DOCS_RS));
-    let mozilla_url = tokio::task::spawn(first_url(MOZILLA));
-    let rustlang_url = tokio::task::spawn(first_url(RUST_LANG));
-    let wikipedia_url = tokio::task::spawn(first_url(WIKIPEDIA));
+    use tokio::task::JoinHandle;
 
+    let mut site_handles: Vec<(&'static str, JoinHandle<_>)> = Vec::new();
 
-    dbg!(amazon_url.await??);
-    dbg!(docsrs_url.await??);
-    dbg!(mozilla_url.await??);
-    dbg!(rustlang_url.await??);
-    dbg!(wikipedia_url.await??);
+    let sites = [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA];
+    for site in sites {
+        site_handles.push((site, tokio::task::spawn(first_url(site))));
+    }
+
+    for (site, handle) in site_handles {
+        dbg!((site, handle.await??));
+    }
 
     Ok(())
 }
