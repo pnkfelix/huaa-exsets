@@ -29,12 +29,23 @@ async fn main() -> Result<(), MyError> {
         site_handles.push((site, tokio::task::spawn(all_urls(site, tx.clone()))));
     }
 
-    while let Some(msg) = rx.recv().await {
-        println!("site: {} => link: {}", msg.site, msg.link);
-    }
+    let recv_task = async {
+        while let Some(msg) = rx.recv().await {
+            println!("site: {} => link: {}", msg.site, msg.link);
+        }
+    };
 
-    for (site, handle) in site_handles {
-        dbg!((site, handle.await??));
+    let join_task = async {
+        for (site, handle) in site_handles {
+            dbg!((site, handle.await??));
+        }
+    };
+
+    // this is new code that runs both of the above concurrently
+    // on this one thread.
+    tokio::select! {
+        () = recv_task => {}
+        () = join_task => {}
     }
 
     Ok(())
