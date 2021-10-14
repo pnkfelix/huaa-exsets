@@ -37,7 +37,7 @@ async fn main() -> Result<(), MyError> {
 
     let join_task = async {
         for (site, handle) in site_handles {
-            dbg!((site, handle.await??));
+            dbg!((site, handle.await.ok()));
         }
     };
 
