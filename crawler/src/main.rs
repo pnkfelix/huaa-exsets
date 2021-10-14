@@ -36,16 +36,19 @@ async fn main() -> Result<(), MyError> {
     };
 
     let join_task = async {
-        for (site, handle) in site_handles {
-            dbg!((site, handle.await.ok()));
+        let mut sum = 0;
+        for (_site, handle) in site_handles {
+            sum += handle.await??;
         }
+        let res: Result<usize, MyError> = Ok(sum);
+        res
     };
 
     // this is new code that runs both of the above concurrently
     // on this one thread.
     tokio::select! {
         () = recv_task => {}
-        () = join_task => {}
+        Ok(sum_done) = join_task => { dbg!(sum_done); }
     }
 
     Ok(())
