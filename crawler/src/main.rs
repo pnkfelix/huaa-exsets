@@ -27,7 +27,8 @@ async fn main() -> Result<(), MyError> {
     Ok(())
 }
 
-async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<(), MyError> {
+async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<Vec<Url>, MyError> {
+    let mut discovered: Vec<Url> = Vec::new();
     let (tx, mut rx) = channel::<Msg>(MSG_BUF_SIZE);
 
     let mut site_handles = Vec::new();
@@ -39,13 +40,14 @@ async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<(), MyError> 
 
     while let Some(msg) = rx.recv().await {
         println!("site: {} => link: {}", msg.site, msg.link);
+        discovered.push(msg.link);
     }
 
     for (site, handle) in site_handles {
         dbg!((site, handle.await??));
     }
 
-    Ok(())
+    Ok(discovered)
 }
 
 async fn _always_err() -> Result<(), MyError> {
