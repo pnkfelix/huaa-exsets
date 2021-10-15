@@ -16,6 +16,8 @@ struct Msg {
 
 const MSG_BUF_SIZE: usize = 4;
 
+const MAX_DEPTH: usize = 2;
+
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
     let mut sites: Vec<Url> = Vec::new();
@@ -23,7 +25,11 @@ async fn main() -> Result<(), MyError> {
         sites.push(Url::parse(link)?);
     }
 
-    crawl_sites(sites).await?;
+    let mut todo = sites;
+    for _depth in 0..MAX_DEPTH {
+        todo = crawl_sites(todo).await?;
+    }
+
     Ok(())
 }
 
