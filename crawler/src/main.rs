@@ -23,11 +23,11 @@ async fn main() -> Result<(), MyError> {
         sites.push(Url::parse(link)?);
     }
 
-    crawl_sites(sites.into_iter()).await?;
+    crawl_sites(sites).await?;
     Ok(())
 }
 
-async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<(), MyError> {
+async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<(), MyError> {
     let (tx, mut rx) = channel::<Msg>(MSG_BUF_SIZE);
 
     let mut site_handles = Vec::new();
