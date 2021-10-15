@@ -8,10 +8,7 @@ type MyError = Box<dyn std::error::Error + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
-    use tokio::task::JoinHandle;
-
-    let mut site_handles: Vec<(&'static str, JoinHandle<_>)> = Vec::new();
-
+    let mut site_handles = Vec::new();
     let sites = [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA];
     for site in sites {
         site_handles.push((site, tokio::task::spawn(first_url(site))));
