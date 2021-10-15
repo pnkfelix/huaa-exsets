@@ -26,6 +26,8 @@ async fn main() -> Result<(), MyError> {
         site_handles.push((site, tokio::task::spawn(all_urls(site, tx.clone()))));
     }
 
+    drop(tx);
+
     while let Some(msg) = rx.recv().await {
         println!("site: {} => link: {}", msg.site, msg.link);
     }
