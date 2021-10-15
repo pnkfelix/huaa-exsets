@@ -18,12 +18,21 @@ const MSG_BUF_SIZE: usize = 4;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
+    let mut sites: Vec<Url> = Vec::new();
+    for link in [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA] {
+        sites.push(Url::parse(link)?);
+    }
+
+    crawl_sites(sites.into_iter()).await?;
+    Ok(())
+}
+
+async fn crawl_sites(sites: impl Iterator<Item=Url>) -> Result<(), MyError> {
     let (tx, mut rx) = channel::<Msg>(MSG_BUF_SIZE);
 
     let mut site_handles = Vec::new();
-    let sites = [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA];
     for site in sites {
-        site_handles.push((site, tokio::task::spawn(all_urls(site, tx.clone()))));
+        site_handles.push((site.clone(), tokio::task::spawn(all_urls(site.clone(), tx.clone()))));
     }
 
     drop(tx);
@@ -46,9 +55,8 @@ async fn _always_err() -> Result<(), MyError> {
 use url::Url;
 use scraper::{Html, Selector};
 
-async fn all_urls(site: &str, tx: Sender<Msg>) -> Result<usize, MyError> {
-    let response = reqwest::get(site).await?;
-    let site = Url::parse(site)?;
+async fn all_urls(site: Url, tx: Sender<Msg>) -> Result<usize, MyError> {
+    let response = reqwest::get(site.clone()).await?;
     let text = response.text().await?;
     // println!("response text: {} bytes", text.len());
     let urls = all_urls_in_text(&text)?;
