@@ -20,6 +20,14 @@ const MAX_DEPTH: usize = 2;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
+    tracing_subscriber::fmt()
+        // line below parses directives from `RUST_LOG` environment variable.
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        // line below makes the tracing output go to stderr.
+        .with_writer(std::io::stderr)
+        // line below makes this *the* subscriber for all tracing in this app.
+        .init();
+
     let mut sites: Vec<Url> = Vec::new();
     for link in [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA] {
         sites.push(Url::parse(link)?);
@@ -39,7 +47,17 @@ async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<Vec<Url>, MyE
 
     let mut site_handles = Vec::new();
     for site in sites {
-        site_handles.push((site.clone(), tokio::task::spawn(all_urls(site.clone(), tx.clone()))));
+        let site = site.clone();
+        let tx = tx.clone();
+        site_handles.push((site.clone(), tokio::task::spawn(async {
+            let res = all_urls(site, tx).await;
+            if res.is_ok() {
+                tracing::trace!("crawler result: {:?}", res);
+            } else {
+                tracing::error!("crawler error: {:?}", res);
+            }
+            res
+        })));
     }
 
     drop(tx);
