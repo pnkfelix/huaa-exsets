@@ -16,7 +16,7 @@ struct Msg {
 
 const MSG_BUF_SIZE: usize = 4;
 
-const MAX_DEPTH: usize = 2;
+const MAX_DEPTH: usize = 3;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
