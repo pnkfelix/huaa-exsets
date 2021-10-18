@@ -47,7 +47,6 @@ async fn crawl_sites(sites: impl IntoIterator<Item=Url>) -> Result<Vec<Url>, MyE
 
     let mut site_handles = Vec::new();
     for site in sites {
-        let site = site.clone();
         let tx = tx.clone();
         site_handles.push((site.clone(), tokio::task::spawn(async {
             let res = all_urls(site, tx).await;
