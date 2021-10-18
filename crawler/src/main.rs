@@ -18,8 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn always_err() -> Result<(), Box<dyn std::error::Error>> {
-    use std::io::{Error, ErrorKind};
-    Err(Box::new(Error::new(ErrorKind::Other, "demo-err")) as Box<_>)
+    Err("demo-err".into())
 }
 
 use url::Url;
