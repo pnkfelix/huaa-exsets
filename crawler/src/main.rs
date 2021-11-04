@@ -16,10 +16,11 @@ struct Msg {
 
 const MSG_BUF_SIZE: usize = 4;
 
-const MAX_DEPTH: usize = 2;
+const MAX_DEPTH: usize = 3;
 
 #[tokio::main]
 async fn main() -> Result<(), MyError> {
+    console_subscriber::init();
     let mut sites: Vec<Url> = Vec::new();
     for link in [AMAZON, DOCS_RS, MOZILLA, RUST_LANG, WIKIPEDIA] {
         sites.push(Url::parse(link)?);
