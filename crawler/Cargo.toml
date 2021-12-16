@@ -12,3 +12,4 @@ scraper = "0.12"
 url = "2.2"
 tracing = "0.1.29"
 tracing-subscriber = "0.2"
+console-subscriber = { path = "/Users/pnkfelix/Dev/AWS/huaa-exsets/console/console-subscriber" }
